@@ -12,4 +12,4 @@ Route::get('/user', function (Request $request) {
 Route::get('/lists', [TaskListController::class, 'index']); // shows all lists available
 Route::get('/tasks', [TaskController::class, 'index']);
 Route::get('/tasks/{id}', [TaskController::class, 'show']);
-Route::get('/lists/{list}/tasks', [TaskController::class, 'tasksByList']);
+Route::get('/lists/{list}/tasks', [TaskController::class, 'tasksByList']); // get all tasks for specific list
