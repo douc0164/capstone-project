@@ -19,7 +19,7 @@ return new class extends Migration
             $table->boolean('is_completed')->default(false);
             $table->foreignId('priority_id')->nullable()->constrained('priorities')->onDelete('set null');
             $table->timestamps();
-            $table->foreignId('list_id')->constrained('lists')->onDelete('cascade');
+            $table->foreignId('list_id')->constrained('task_lists')->onDelete('cascade');
         });
         
     }

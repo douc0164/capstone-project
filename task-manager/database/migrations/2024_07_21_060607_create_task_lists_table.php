@@ -12,7 +12,7 @@ return new class extends Migration
     public function up(): void
     {
         // this is for all the lists that are going to hold all the tasks associated to each list
-        Schema::create('lists', function (Blueprint $table) {
+        Schema::create('task_lists', function (Blueprint $table) {
             $table->id();
             $table->string('list_name', 50);
             $table->timestamps();
