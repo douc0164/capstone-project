@@ -36,11 +36,16 @@ class TaskListController extends Controller
         return response()->json($list, 201);
     }
     
-    // update
+    // update list
     public function update(Request $request, User $user, TaskList $list){
         if (Auth::id() !== $user->id) {
             return response()->json(['error' => 'Unauthorized'], 403);
         }
+
+        $request->validate([
+            'list_name' => 'required|string|max:50',
+        ]);
+
         $list->list_name = $request->input('list_name');
         $list->save();
     
@@ -57,7 +62,7 @@ class TaskListController extends Controller
             return response()->json(['error' => 'Unauthorized'], 403);
         }
         $list->delete();
-        
-        return response()->json(['message' => 'Task list deleted successfully'], 200);
+
+        return response()->json(['message' => 'List deleted successfully'], 200);
     }
 }

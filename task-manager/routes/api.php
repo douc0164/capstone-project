@@ -16,15 +16,14 @@ Route::middleware(['auth:sanctum'])->group(function () {
         Route::get('{list}', [TaskListController::class, 'show']);
         Route::put('{list}', [TaskListController::class, 'update']);
         Route::delete('{list}', [TaskListController::class, 'destroy']);
+    });
 
-        // Nested Tasks routes within a Task List
-        Route::prefix('{list}/tasks')->group(function () {
-            Route::get('/', [TaskController::class, 'index']);
-            Route::post('/', [TaskController::class, 'store']);
-            Route::get('{task}', [TaskController::class, 'show']);
-            Route::put('{task}', [TaskController::class, 'update']);
-            Route::delete('{task}', [TaskController::class, 'destroy']);
-        });
+    Route::prefix('users/{user}/lists/{list}/tasks')->group(function () {
+        Route::get('/', [TaskController::class, 'index']);
+        Route::post('/', [TaskController::class, 'store']);
+        Route::get('{task}', [TaskController::class, 'show']);
+        Route::put('{task}', [TaskController::class, 'update']);
+        Route::delete('{task}', [TaskController::class, 'destroy']);
     });
 });
 
