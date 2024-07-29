@@ -6,10 +6,8 @@ use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
 Route::middleware(['auth:sanctum'])->group(function () {
-    // User-specific routes
     Route::get('users/{user}', [UserController::class, 'show']);
 
-    // Task Lists routes (user-specific)
     Route::prefix('users/{user}/lists')->group(function () {
         Route::get('/', [TaskListController::class, 'index']);
         Route::post('/', [TaskListController::class, 'store']);
