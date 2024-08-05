@@ -1,0 +1,42 @@
+
+body {
+    /* font-family: 'Inter', sans-serif; */
+    margin: 50px;
+}
+
+.custom-container {
+    max-width: 80%;
+    margin: 0 auto;
+    
+}
+
+
+.task-card {
+    width: 100%;
+    padding-top: 100%;
+    position: relative;
+}
+
+.task-list-card {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  display: flex;
+  flex-direction: column;
+  text-align: center; 
+}
+
+.modal-custom-backdrop {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(5px);
+z-index: 1040;
+}
+
+  

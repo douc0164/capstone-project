@@ -7,7 +7,7 @@ const app = Vue.createApp({
       lists: [],
       showNewList: false,
       showEditList: false,
-
+      sortOption: '', 
       // login
       loginForm: {
         email: '',
@@ -33,7 +33,8 @@ const app = Vue.createApp({
   created: async function () {
     this.token = sessionStorage.getItem('token') || ''
     if (this.token) {
-      this.getLists()
+      await this.getLists()
+      this.sortLists() // Sort lists after fetching
     }
   },
 
@@ -56,7 +57,8 @@ const app = Vue.createApp({
         this.token = json.token
         sessionStorage.setItem('token', this.token)
 
-        this.getLists()
+        await this.getLists()
+        this.sortLists() // Sort lists after login
 
       } catch (error) {
         console.log(error)
@@ -74,21 +76,22 @@ const app = Vue.createApp({
           }
         })
         this.lists = await response.json()
-
+        this.sortLists() // Sort lists after fetching
+          
       } catch (error) {
         console.log(error)
       }
     },
 
-    // ADD LIST
+    // ADD NEW LIST
     addList: async function () {
-      try {
+        try {
         const response = await fetch(`${baseUrl}/api/lists`, {
           method: 'post',
           headers: {
-            'Accept': 'application/json',
             'Authorization': `Bearer ${this.token}`,
-            'Content-Type': "application/json"
+            'Accept': 'application/json',
+            'Content-Type':'application/json'
           },
           body: JSON.stringify(this.newList)
         })
@@ -97,6 +100,7 @@ const app = Vue.createApp({
         this.lists.push(json)
         this.showNewList = false
 
+        this.sortLists() 
       } catch (error) {
         console.log(error)
       }
@@ -130,6 +134,7 @@ const app = Vue.createApp({
         const index = this.lists.findIndex(list => list.id === json.id)
         this.lists.splice(index, 1, json)
         this.showEditList = false
+        this.sortLists() // Sort lists after editing a list
 
       } catch (error) {
         console.log(error)
@@ -146,8 +151,23 @@ const app = Vue.createApp({
           }
         })
         this.lists = this.lists.filter(l => l.id !== list.id)
+        this.sortLists() // Sort lists after deleting a list
+
       } catch (error) {
         console.log(error)
+      }
+    },
+
+    // SORT LISTS
+    sortLists: function () {
+      if (this.sortOption === 'name-asc') {
+        this.lists.sort((a, b) => a.list_name.localeCompare(b.list_name))
+      } else if (this.sortOption === 'name-desc') {
+        this.lists.sort((a, b) => b.list_name.localeCompare(a.list_name))
+      } else if (this.sortOption === 'newest') {
+        this.lists.sort((a, b) => new Date(b.created_at) - new Date(a.created_at))
+      } else if (this.sortOption === 'oldest') {
+        this.lists.sort((a, b) => new Date(a.created_at) - new Date(b.created_at))
       }
     },
 

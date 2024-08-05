@@ -7,10 +7,18 @@ const app = Vue.createApp({
     return {
       listName: '',
       tasks: [],
+      priorities: [],
       showNewTask: false,
+      showEditTask: false,
+      sortOption: '',
+
       newTask: {
         task_name: '',
-        due_date: ''
+        due_date: '',
+      },
+      editTask: {
+        task_name: '',
+        due_date: '',
       },
       token: sessionStorage.getItem('token') || ''
     }
@@ -20,6 +28,7 @@ const app = Vue.createApp({
     if (this.token) {
       this.getListName()
       this.getTasks()
+      this.getPriorities()
     }
   },
 
@@ -59,15 +68,32 @@ const app = Vue.createApp({
       }
     },
 
+    // GET PRIORITIES
+    getPriorities: async function () {
+      try {
+        const response = await fetch(`${baseUrl}/api/priorities`, {
+          method: 'get',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          }
+        })
+        this.priorities = await response.json()
+
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
     // ADD TASK
     addTask: async function () {
       try {
         const response = await fetch(`${baseUrl}/api/lists/${listId}/tasks`, {
           method: 'post',
           headers: {
-            'Accept': 'application/json',
             'Authorization': `Bearer ${this.token}`,
-            'Content-Type': "application/json"
+            'Accept': 'application/json',
+            'Content-Type': 'application/json'
           },
           body: JSON.stringify(this.newTask)
         })
@@ -79,6 +105,73 @@ const app = Vue.createApp({
       } catch (error) {
         console.log(error)
       }
+    },
+
+    // EDIT TASK
+    showEditTaskModal(task) {
+      this.editTask = { ...task }
+      this.showEditTask = true
+    },
+
+    // UPDATE TASK
+    updateTask: async function () {
+      try {
+        const response = await fetch(`${baseUrl}/api/lists/${listId}/tasks/${this.editTask.id}`, {
+          method: 'put',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.token}`,
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify(this.editTask)
+        })
+
+        const json = await response.json()
+        const index = this.tasks.findIndex(task => task.id === this.editTask.id)
+        this.tasks.splice(index, 1, json)
+        this.showEditTask = false
+
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
+    // DELETE TASK
+    deleteTask: async function (task) {
+      try {
+        await fetch(`${baseUrl}/api/lists/${listId}/tasks/${task.id}`, {
+          method: 'delete',
+          headers: {
+            'Accept': 'application/json',
+            'Authorization': `Bearer ${this.token}`
+          }
+        })
+
+        const index = this.tasks.findIndex(t => t.id === task.id)
+        this.tasks.splice(index, 1)
+
+      } catch (error) {
+        console.log(error)
+      }
+    },
+
+    // SORT TASKS
+    sortTasks() {
+      if (this.sortOption === 'name-asc') {
+        this.tasks.sort((a, b) => a.task_name.localeCompare(b.task_name))
+      } else if (this.sortOption === 'name-desc') {
+        this.tasks.sort((a, b) => b.task_name.localeCompare(a.task_name))
+      } else if (this.sortOption === 'date-asc') {
+        this.tasks.sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
+      } else if (this.sortOption === 'date-desc') {
+        this.tasks.sort((a, b) => new Date(b.due_date) - new Date(a.due_date))
+      }
+    }
+  },
+
+  computed: {
+    sortedTasks() {
+      return this.tasks
     }
   }
 })
