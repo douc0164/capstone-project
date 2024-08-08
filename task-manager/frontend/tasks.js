@@ -1,179 +1,206 @@
 const baseUrl = 'http://127.0.0.1:8000'
-const urlParams = new URLSearchParams(window.location.search)
-const listId = urlParams.get('list_id')
-
 const app = Vue.createApp({
-  data: function () {
-    return {
-      listName: '',
-      tasks: [],
-      priorities: [],
-      showNewTask: false,
-      showEditTask: false,
-      sortOption: '',
+    data() {
+        return {
+            listId: new URLSearchParams(window.location.search).get('list_id'),
+            listName: new URLSearchParams(window.location.search).get(
+                'list_name'
+            ),
+            tasks: [],
+            priorities: [],
+            newTask: {
+                task_name: '',
+                priority_id: '',
+                due_date: '',
+            },
 
-      newTask: {
-        task_name: '',
-        due_date: '',
-      },
-      editTask: {
-        task_name: '',
-        due_date: '',
-      },
-      token: sessionStorage.getItem('token') || ''
-    }
-  },
-
-  created: async function () {
-    if (this.token) {
-      this.getListName()
-      this.getTasks()
-      this.getPriorities()
-    }
-  },
-
-  methods: {
-    // GET LIST NAME
-    getListName: async function () {
-      try {
-        const response = await fetch(`${baseUrl}/api/lists/${listId}`, {
-          method: 'get',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-        const list = await response.json()
-        this.listName = list.list_name
-
-      } catch (error) {
-        console.log(error)
-      }
+            editTaskForm: {
+                task_name: '',
+                priority_id: '',
+                due_date: '',
+                is_completed: false,
+            },
+            sortOption: '',
+            tasktoupdate: null,
+            showNewTask: false,
+            showEditTask: false,
+            loading: false,
+            errors: false,
+            errorMessage: '',
+        };
     },
 
-    // GET TASKS
-    getTasks: async function () {
-      try {
-        const response = await fetch(`${baseUrl}/api/lists/${listId}/tasks`, {
-          method: 'get',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-        this.tasks = await response.json()
+    methods: {
+        //COMPLETED CHECK BOX
+        async togglemarkascompleted(task) {
+            this.tasktoupdate = task.id;
 
-      } catch (error) {
-        console.log(error)
-      }
+            this.editTaskForm.is_completed = !task.is_completed;
+            this.editTaskForm.task_name = task.task_name;
+            this.editTaskForm.priority_id = task.priority_id;
+            this.editTaskForm.due_date = task.due_date;
+            this.updateTask();
+        },
+
+        //update selected priority id
+        async prioritySelectChanged(val) {
+            this.newTask.priority_id = val.target.value;
+        },
+
+        //updates the edit task form's priority id
+        async editprioritySelectChanged(val) {
+            this.editTaskForm.priority_id = val.target.value;
+        },
+
+        //GET/DISPLAY ALL THE TASKS
+        async fetchTasks() {
+            this.loading = true;
+            const response = await fetch(`${baseUrl}/api/lists/${this.listId}/tasks`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+
+            this.tasks = await response.json();
+            this.sortTasks();
+            this.loading = false;
+        },
+
+        //COMPLETED TASKS AT THE BOTTOM
+        sortTasks() {
+            this.tasks.sort((a, b) => a.is_completed - b.is_completed);
+        },
+
+        //SORT
+        sortTasks() {
+            this.tasks.sort((a, b) => a.is_completed - b.is_completed);
+
+            if (this.sortOption === 'name-asc') {
+                this.tasks.sort((a, b) => a.is_completed - b.is_completed || a.task_name.localeCompare(b.task_name));
+            } else if (this.sortOption === 'name-desc') {
+                this.tasks.sort((a, b) => a.is_completed - b.is_completed || b.task_name.localeCompare(a.task_name));
+            } else if (this.sortOption === 'date-asc') {
+                this.tasks.sort((a, b) => a.is_completed - b.is_completed || new Date(a.due_date) - new Date(b.due_date));
+            } else if (this.sortOption === 'date-desc') {
+                this.tasks.sort((a, b) => a.is_completed - b.is_completed || new Date(b.due_date) - new Date(a.due_date));
+            }
+        },
+
+        //GET PRIORITIES
+        async fetchPriorities() {
+            this.loading = true;
+            const response = await fetch(`${baseUrl}/api/priorities`, {
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+
+            this.priorities = await response.json();
+            this.loading = false;
+        },
+
+        //ADD A NEW TASK
+        async addTask() {
+            this.loading = true;
+            const response = await fetch(`${baseUrl}/api/lists/tasks/add`, {
+                method: 'post',
+                headers: {
+                    'Content-Type': 'application/json',
+                    Authorization: `Bearer ${localStorage.getItem(
+                        'token'
+                    )}`,
+                },
+                body: JSON.stringify({
+                    task_name: this.newTask.task_name,
+                    priority_id: this.newTask.priority_id,
+                    due_date: this.newTask.due_date,
+                    list_id: this.listId,
+                }),
+            });
+
+            if (response.ok) {
+                this.showNewTask = false;
+                this.fetchTasks();
+                this.loading = false;
+            } else {
+                console.error(await response.json());
+                this.loading = false;
+            }
+        },
+        
+        //UPDATE/EDIT TASK
+        async updateTask() {
+            this.loading = true;
+            const response = await fetch(`${baseUrl}/api/lists/${this.listId}/tasks/${this.tasktoupdate}`, {
+                    method: 'put',
+                    headers: {
+                        'Content-Type': 'application/json',
+                        'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                    },
+                    body: JSON.stringify(this.editTaskForm),
+                }
+            );
+
+            if (response.ok) {
+                this.loading = false;
+                // console.error(await response.json());
+                this.fetchTasks();
+                this.showEditTask = false;
+            } else {
+                this.loading = false;
+            }
+        },
+
+        //DELETE TASK
+        async deleteTask(task) {
+            this.loading = true;
+            const response = await fetch(`${baseUrl}/api/lists/${this.listId}/tasks/${task.id}`, {
+                method: 'delete',
+                headers: {
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+            });
+
+            if (response.ok) {
+                this.fetchTasks();
+                this.loading = false;
+            } else {
+                console.error(await response.json());
+                this.loading = false;
+            }
+        },
+
+        // EDIT - DISPLAY TASK INFO THAT WILL BE EDITED
+        async editTask(task) {
+            this.tasktoupdate = task.id;
+            this.showEditTask = true;
+            this.editTaskForm.task_name = task.task_name;
+            this.editTaskForm.priority_id = task.priority_id;
+            this.editTaskForm.due_date = task.due_date;
+        },
+        async updateTaskForm() {
+            const response = await fetch(`${baseUrl}/api/lists/${this.listId}/tasks/${this.editTaskForm.id}`, {
+                method: 'put',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${localStorage.getItem('token')}`,
+                },
+                body: JSON.stringify(this.editTaskForm),
+            });
+
+            if (response.ok) {
+                this.showEditTask = false;
+                this.fetchTasks();
+            } else {
+                console.error(await response.json());
+            }
+        },
     },
 
-    // GET PRIORITIES
-    getPriorities: async function () {
-      try {
-        const response = await fetch(`${baseUrl}/api/priorities`, {
-          method: 'get',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-        this.priorities = await response.json()
-
-      } catch (error) {
-        console.log(error)
-      }
+    mounted() {
+        this.fetchTasks();
+        this.fetchPriorities();
     },
+});
 
-    // ADD TASK
-    addTask: async function () {
-      try {
-        const response = await fetch(`${baseUrl}/api/lists/${listId}/tasks`, {
-          method: 'post',
-          headers: {
-            'Authorization': `Bearer ${this.token}`,
-            'Accept': 'application/json',
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(this.newTask)
-        })
-
-        const json = await response.json()
-        this.tasks.push(json)
-        this.showNewTask = false
-
-      } catch (error) {
-        console.log(error)
-      }
-    },
-
-    // EDIT TASK
-    showEditTaskModal(task) {
-      this.editTask = { ...task }
-      this.showEditTask = true
-    },
-
-    // UPDATE TASK
-    updateTask: async function () {
-      try {
-        const response = await fetch(`${baseUrl}/api/lists/${listId}/tasks/${this.editTask.id}`, {
-          method: 'put',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.token}`,
-            'Content-Type': 'application/json'
-          },
-          body: JSON.stringify(this.editTask)
-        })
-
-        const json = await response.json()
-        const index = this.tasks.findIndex(task => task.id === this.editTask.id)
-        this.tasks.splice(index, 1, json)
-        this.showEditTask = false
-
-      } catch (error) {
-        console.log(error)
-      }
-    },
-
-    // DELETE TASK
-    deleteTask: async function (task) {
-      try {
-        await fetch(`${baseUrl}/api/lists/${listId}/tasks/${task.id}`, {
-          method: 'delete',
-          headers: {
-            'Accept': 'application/json',
-            'Authorization': `Bearer ${this.token}`
-          }
-        })
-
-        const index = this.tasks.findIndex(t => t.id === task.id)
-        this.tasks.splice(index, 1)
-
-      } catch (error) {
-        console.log(error)
-      }
-    },
-
-    // SORT TASKS
-    sortTasks() {
-      if (this.sortOption === 'name-asc') {
-        this.tasks.sort((a, b) => a.task_name.localeCompare(b.task_name))
-      } else if (this.sortOption === 'name-desc') {
-        this.tasks.sort((a, b) => b.task_name.localeCompare(a.task_name))
-      } else if (this.sortOption === 'date-asc') {
-        this.tasks.sort((a, b) => new Date(a.due_date) - new Date(b.due_date))
-      } else if (this.sortOption === 'date-desc') {
-        this.tasks.sort((a, b) => new Date(b.due_date) - new Date(a.due_date))
-      }
-    }
-  },
-
-  computed: {
-    sortedTasks() {
-      return this.tasks
-    }
-  }
-})
-
-app.mount('#app')
+app.mount('#app');
