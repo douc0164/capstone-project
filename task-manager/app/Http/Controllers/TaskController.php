@@ -21,6 +21,7 @@ class TaskController extends Controller
         return response()->json($task, 200);
     }
 
+    // create task
     public function store(Request $request)
     {
 
@@ -48,6 +49,7 @@ class TaskController extends Controller
         return response()->json(['task' => $task], 201);
     }
 
+    //update task
     public function update(Request $request, $list, $task)
     {
         $validator = Validator::make($request->all(), [
@@ -70,6 +72,7 @@ class TaskController extends Controller
         return response()->json(['task' => $task], 200);
     }
 
+    // delete task
     public function destroy(TaskList $list, $id)
     {
         $task = $list->tasks()->findOrFail($id);
@@ -78,6 +81,7 @@ class TaskController extends Controller
         return response()->json($task, 200);
     }
 
+    // show all tasks associated to a list
     public function tasksByList(TaskList $list)
     {
         $tasks = $list->tasks;

@@ -13,8 +13,6 @@ return new class extends Migration
         Schema::table('tasks', function (Blueprint $table) {
             $table->unsignedBigInteger('priority_id')->nullable()->after('due_date');
             $table->boolean('completed')->default(false)->after('priority_id');
-
-            // Assuming you have a priorities table, add a foreign key constraint
             $table->foreign('priority_id')->references('id')->on('priorities');
         });
     }

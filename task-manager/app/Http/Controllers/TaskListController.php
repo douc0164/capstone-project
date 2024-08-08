@@ -56,6 +56,7 @@ class TaskListController extends Controller
         return response()->json($list, 200);
     }
 
+    // sort lists
     public function sortLists($sortOption, $userId)
     {
         switch ($sortOption) {
