@@ -14,7 +14,7 @@ class AuthenticatedSessionController extends Controller
     /**
      * Handle an incoming authentication request.
      */
-    public function store(LoginRequest $request): JsonResponse
+    public function store(LoginRequest $request): JsonResponse // JsonResponse insted of Response
     {
         $request->authenticate();
 
@@ -22,7 +22,7 @@ class AuthenticatedSessionController extends Controller
 
         // return response()->noContent();
         $token = $request->user()->createToken('auth_token')->plainTextToken;
-        return response()->json(['token' => $token]);
+        return response()->json(['token'=>$token]);
     }
 
     /**

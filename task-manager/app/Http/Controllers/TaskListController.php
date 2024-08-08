@@ -4,65 +4,76 @@ namespace App\Http\Controllers;
 
 use App\Models\TaskList;
 use Illuminate\Http\Request;
-use App\Models\User;
-use Illuminate\Support\Facades\Auth;
 
 // THIS IS FOR THE LIST
 class TaskListController extends Controller
 {
-    public function index(User $user){
-        return response()->json($user->lists, 200);
+    public function index(Request $request)
+    {
+        $lists = TaskList::where('user_id', $request->user_id)->get();
+        return response()->json($lists, 200);
     }
 
-    public function show (TaskList $list){
-        if (Auth::id() !== $list->user_id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
-
+    public function show($id)
+    {
+        $list = TaskList::find($id);
         return response()->json($list, 200);
     }
 
     // create list
-    public function store(Request $request){
-        $request->validate([
-            'list_name' => 'required|string|max:50',
+    public function store(Request $request)
+    {
+
+        $validated = $request->validate([
+            'list_name' => 'required|string|max:255',
+            'user_id' => 'required|exists:users,id',
         ]);
 
-        $list = new TaskList();
-        $list->list_name = $request->input('list_name');
-        $list->user_id = Auth::id();
-        $list->save();
+        $taskList = TaskList::create([
+            'list_name' => $validated['list_name'],
+            'user_id' => $validated['user_id'],
+        ]);
 
-        return response()->json($list, 201);
+        return response()->json($taskList, 201);
     }
-    
-    // update list
-    public function update(Request $request, User $user, TaskList $list){
-        if (Auth::id() !== $user->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
 
-        $request->validate([
-            'list_name' => 'required|string|max:50',
-        ]);
+    // update
+    public function update($id)
+    {
+        $list = TaskList::find($id);
+        $list->list_name = request('list_name');
+        $list->save(); //save to database
 
-        $list->list_name = $request->input('list_name');
-        $list->save();
-    
         return response()->json($list, 200);
     }
-    
-    // delete list
-    public function destroy(User $user, TaskList $list){
-        if (Auth::id() !== $user->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
 
-        if ($list->user_id !== $user->id) {
-            return response()->json(['error' => 'Unauthorized'], 403);
-        }
+    // delete list
+    public function destroy($id)
+    {
+        $list = TaskList::find($id);
         $list->delete();
 
-        return response()->json(['message' => 'List deleted successfully'], 200);
+        return response()->json($list, 200);
+    }
+
+    public function sortLists($sortOption, $userId)
+    {
+        switch ($sortOption) {
+            case 'name-desc':
+                $sortedLists = TaskList::where('user_id', $userId)->orderBy('list_name', 'desc')->get();
+                break;
+            case 'name-asc':
+                $sortedLists = TaskList::where('user_id', $userId)->orderBy('list_name', 'asc')->get();
+                break;
+            case 'oldest':
+                $sortedLists = TaskList::where('user_id', $userId)->orderBy('created_at', 'asc')->get();
+                break;
+            case 'newest':
+                $sortedLists = TaskList::where('user_id', $userId)->orderBy('created_at', 'desc')->get();
+                break;
+            default:
+                return response()->json(['error' => 'Invalid sort option'], 400);
+        }
+        return response()->json($sortedLists);
     }
 }
