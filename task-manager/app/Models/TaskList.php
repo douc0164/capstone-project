@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Model;
 class TaskList extends Model
 {
     use HasFactory;
+    protected $guarded = [];
 
     public function tasks()
     {

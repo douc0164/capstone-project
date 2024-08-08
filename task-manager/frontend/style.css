@@ -1,0 +1,116 @@
+
+body {
+    /* font-family: 'Inter', sans-serif; */
+    margin: 50px;
+}
+
+.custom-container {
+    max-width: 80%;
+    margin: 0 auto;
+    
+}
+
+.task-card {
+  width: 100%;
+  padding-top: 100%;
+  position: relative;
+}
+
+.task-card {
+  width: 100%;
+  padding-top: 100%;
+  position: relative;
+}
+
+.task-card-content {
+position: absolute;
+top: 0;
+left: 0;
+right: 0;
+bottom: 0;
+display: flex;
+flex-direction: column;
+justify-content: space-between;
+}
+
+.modal-custom-backdrop {
+position: fixed;
+top: 0;
+left: 0;
+width: 100%;
+height: 100%;
+background: rgba(0, 0, 0, 0.5);
+backdrop-filter: blur(5px);
+z-index: 1040;
+}
+
+.task-card-link {
+  text-decoration: none;
+}
+
+.task-card:hover {
+  transform: scale(1.05); 
+}
+
+.task-card-content {
+  margin-top: 10px;
+  text-align: center; 
+}
+
+
+.task-card-content .btn {
+  margin: 5px; 
+}
+
+
+.loading-active {
+    display: block;
+}
+
+
+.bg-red {
+    background-color: rgb(247, 152, 152);
+}
+.bg-light-yellow {
+    background-color: rgb(255, 232, 157);
+}
+.bg-light-green {
+    background-color: rgb(172, 215, 191);
+}
+
+
+.custom-checkbox .form-check-input {
+  width: 20px;
+  height: 20px;
+  background-color: rgb(255, 255, 255);
+  border: 2px solid black;
+}
+
+.custom-checkbox .form-check-input:checked {
+  background-color: black;
+}
+
+
+.task-card-link {
+  width: 100%;
+  padding: 20px;
+  text-align: center;
+  border: 1px solid #6c757d;
+  transition: transform 0.2s, box-shadow 0.2s;
+}
+.task-card-link:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 3px 3px rgba(0, 0, 0, 0.2);
+}
+.task-card {
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+}
+.task-card h4 {
+  margin-bottom: 20px;
+}
+.task-card-buttons {
+  margin-top: auto;
+}
