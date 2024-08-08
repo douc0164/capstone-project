@@ -1,29 +1,36 @@
 <?php
 
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\PriorityController;
 use App\Http\Controllers\TaskListController;
 use App\Http\Controllers\TaskController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
-Route::middleware(['auth:sanctum'])->group(function () {
-    Route::get('users/{user}', [UserController::class, 'show']);
+Route::get('/user', function (Request $request) {
+    return $request->user();
+})->middleware('auth:sanctum');
 
-    Route::prefix('users/{user}/lists')->group(function () {
-        Route::get('/', [TaskListController::class, 'index']);
-        Route::post('/', [TaskListController::class, 'store']);
-        Route::get('{list}', [TaskListController::class, 'show']);
-        Route::put('{list}', [TaskListController::class, 'update']);
-        Route::delete('{list}', [TaskListController::class, 'destroy']);
-    });
+Route::post('/register', [AuthController::class, 'register']);
+Route::post('/login', [AuthController::class, 'login']);
 
-    Route::prefix('users/{user}/lists/{list}/tasks')->group(function () {
-        Route::get('/', [TaskController::class, 'index']);
-        Route::post('/', [TaskController::class, 'store']);
-        Route::get('{task}', [TaskController::class, 'show']);
-        Route::put('{task}', [TaskController::class, 'update']);
-        Route::delete('{task}', [TaskController::class, 'destroy']);
-    });
-});
+Route::get('priorities', [PriorityController::class, 'index']);
+
+Route::get('/lists/{user_id}', [TaskListController::class, 'index']); // shows all lists available
+Route::post('/lists/add', [TaskListController::class, 'store']);
+Route::get('/lists/{id}', [TaskListController::class, 'show']); // getting single list
+Route::put('/lists/{id}', [TaskListController::class, 'update']);
+Route::delete('/lists/{id}', [TaskListController::class, 'destroy']);
+
+Route::get('lists/{list}/tasks', [TaskController::class, 'index']);
+Route::get('lists/{list}/tasks/{task}', [TaskController::class, 'show']);
+Route::post('lists/tasks/add', [TaskController::class, 'store']);
+Route::put('lists/{list}/tasks/{task}', [TaskController::class, 'update']);
+Route::delete('lists/{list}/tasks/{task}', [TaskController::class, 'destroy']);
+
+Route::get('/lists/{list}/tasks', [TaskController::class, 'tasksByList']); // get all tasks for specific list
+
+Route::get('lists/sort/{sort}/{userId}', [TaskListController::class, 'sortLists']);
 
 // Route::get('/user', function (Request $request) {
 //     return $request->user();
